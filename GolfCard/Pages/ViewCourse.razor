@@ -1,0 +1,107 @@
+﻿@using Data
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<ApplicationDbContext> ContextFactory
+@inject NavigationManager NavigationManager
+@page "/course/{Id:int}"
+
+@if (ThisCourse != null)
+{
+    <h1>Create The Holes for @ThisCourse.Name</h1>
+
+    <p>
+        @if(HoleList.Count < 18)
+        {
+            <label>Number</label>
+            <input  @bind="TempHole.Number"/>
+
+            <label>Par</label>
+            <input @bind="TempHole.Par"/>
+
+            <label>Length</label>
+            <input @bind="TempHole.Length"/>
+
+            <button class="btn btn-primary" @onclick="@AddHole">Add Hole</button>
+        }
+        
+        <button class="btn btn-primary" @onclick="@SaveCourse" style="float: right;">Save Course</button>
+    </p>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Hole Number</th>
+                <th>Par</th>
+                <th>Length</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var hole in HoleList)
+            {
+                <tr>
+                    <td>@hole.Number</td>
+                    <td>@hole.Par</td>
+                    <td>@hole.Length</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+@code {
+
+    [Parameter]
+    public int Id { get; set; }
+
+    private Course? ThisCourse { get; set; }
+
+    private Hole TempHole = new Data.Hole();
+
+    private List<Hole> HoleList = new List<Hole>();
+
+
+    protected override void OnInitialized()
+    {
+        getCourse();
+    }
+
+    public void AddHole()
+    {
+        if(HoleList.Any(H => H.Number == TempHole.Number))
+        {
+            return;
+        }
+
+        using (var ctx = ContextFactory.CreateDbContext())
+        {
+            TempHole.CourseID = ThisCourse.Id;
+            ctx.Hole.Add(TempHole);
+            ctx.SaveChanges();
+        }
+        getCourse();
+    }
+
+
+    public void SaveCourse()
+    {
+        NavigationManager.NavigateTo("viewcourses");
+    }
+
+    private void getCourse()
+    {
+        using (var ctx = ContextFactory.CreateDbContext())
+        {
+            HoleList = ctx.Hole.Where(H => H.CourseID == Id).ToList();
+            ThisCourse = ctx.Course.First(C => C.Id == Id);
+        }
+
+         if (!HoleList.Any())
+        {
+            TempHole.Number = 1;
+        }
+        else if(HoleList.Count < 18)
+        {
+            TempHole.Number = HoleList.Count + 1;
+        }
+    }
+}

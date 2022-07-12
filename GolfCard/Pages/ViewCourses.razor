@@ -1,0 +1,48 @@
+﻿@using GolfCard.Data
+@using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<ApplicationDbContext> ContextFactory
+@inject NavigationManager NavigationManager
+
+@page "/viewcourses"
+
+<h3>ViewCourses</h3>
+
+
+<div>
+    <label>Create Course</label>
+    <input @bind="Name" />
+    <button class="btn btn-primary " @onclick="@Submit">Submit</button>
+</div>
+
+
+@foreach (var course in CourseList)
+{
+  <div>
+    <NavLink href="@course.Url" target="_blank">@course.Name</NavLink>
+  </div>
+}
+
+@code {
+    public string Name = "";
+    private List<Course> CourseList = new List<Course>();
+
+    protected override void OnInitialized()
+    {
+        using (var ctx = ContextFactory.CreateDbContext())
+        {
+            CourseList = ctx.Course.ToList();
+        }
+    }
+
+    public async void Submit()
+    {
+        Course NewCourse = new Course(Name);
+        using (var ctx = ContextFactory.CreateDbContext())
+        {
+            ctx.Course.Add(NewCourse);
+            await ctx.SaveChangesAsync();
+        }
+        
+        NavigationManager.NavigateTo("Course/" + NewCourse.Id);
+    }
+}

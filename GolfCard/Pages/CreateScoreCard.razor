@@ -1,0 +1,41 @@
+﻿@using Data
+@inject NavigationManager NavigationManager
+
+@page "/createscorecard"
+
+<PageTitle>Create Score Card</PageTitle>
+
+<h1>New Score Card</h1>
+<h3>Lets Get Started</h3>
+
+<br />
+
+<p>
+    <label>Todays Date</label>
+    <input type='date' format-value="yyyy-MM-dd" @bind="CurrentDate" />
+</p>
+<p>
+    <label>Course Name</label>
+    <input @bind="CourseName"/>
+</p>
+
+<button class="btn btn-primary" @onclick="@Submit">Submit</button>
+
+
+
+@code {
+
+    private DateTime CurrentDate{ get; set; } = DateTime.Today;
+    private string CourseName { get; set; } = "";
+    private Data.Course? CurrentCourse;
+
+    protected void Submit()
+    {
+        CurrentCourse = new Data.Course(CourseName);
+
+        ScoreCard CurrentScoreCard = new ScoreCard(CurrentDate, CurrentCourse);
+
+        NavigationManager.NavigateTo("CreateScoreCard");
+        
+    }
+}
